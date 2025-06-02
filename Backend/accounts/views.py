@@ -1,4 +1,4 @@
-from .serialization import RegisterUserSerialization, CreateUserSerialization
+from .serialization import RegisterUserSerialization, CreateUserSerialization,UpdateProfileSerialization,ChangePasswordSerialization
 from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -7,6 +7,9 @@ from rest_framework import status
 from .models import User
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
+# accounts/views.py
+
+
 
 
 
@@ -55,4 +58,37 @@ class CreateUser(generics.CreateAPIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class UpdateProfile(generics.UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = UpdateProfileSerialization
+
+    def get_object(self):
+        return self.request.user
+    
+
+    
+
+
+class ChangePassword(generics.UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ChangePasswordSerialization
+
+    def get_object(self):
+        return self.request.user
+# logout
+
+
+class Logout(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            refresh_token = request.data.get('refresh_token')
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            return Response({'details' : 'logout successfully'},status=status.HTTP_205_RESET_CONTENT)
+        except Exception as e:
+           return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
     
